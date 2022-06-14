@@ -4,7 +4,7 @@
 #  configure script for L-SMASH
 #
 #  Currently, this script is considering only GCC.
-#  If you want to use other compiler based on C99 standerd (e.g. llvm),
+#  If you want to use other compiler bagsed on C99 standerd (e.g. llvm),
 #  we just say to you "patches welcome."
 #----------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ error_exit()
     exit 1
 }
 
-#Currently, this is used only for the flag check of compiler.
+#Currently, this is ugsed only for the flag check of compiler.
 cc_check()
 {
     echo 'int main(void){return 0;}' > conftest.c
@@ -115,7 +115,7 @@ TOOLS=""
 
 CFLAGS="-Wshadow -Wall -std=c99 -pedantic -I. -I$SRCDIR"
 LDFLAGS="-L."
-SO_LDFLAGS='-shared -Wl,-soname,$@ -Wl,--version-script,liblsmash.ver'
+SO_LDFLAGS='-shared -Wl,-soname,$@'
 LIBS="-lm"
 
 for opt; do
@@ -195,9 +195,9 @@ for f in "$CC" "$AR" "$LD" "$RANLIB" "$STRIP"; do
 done
 
 
-MAJVER=$(grep -e '#define LSMASH_VERSION_MAJOR' $SRCDIR/lsmash.h | sed -e 's/#define LSMASH_VERSION_MAJOR //;s/ //g')
-MINVER=$(grep -e '#define LSMASH_VERSION_MINOR' $SRCDIR/lsmash.h | sed -e 's/#define LSMASH_VERSION_MINOR //;s/ //g')
-MICVER=$(grep -e '#define LSMASH_VERSION_MICRO' $SRCDIR/lsmash.h | sed -e 's/#define LSMASH_VERSION_MICRO //;s/ //g')
+MAJVER=$(grep -e '#define LSMASH_VERSION_MAJOR' $SRCDIR/lsmash.h | gsed -e 's/#define LSMASH_VERSION_MAJOR //;s/ //g')
+MINVER=$(grep -e '#define LSMASH_VERSION_MINOR' $SRCDIR/lsmash.h | gsed -e 's/#define LSMASH_VERSION_MINOR //;s/ //g')
+MICVER=$(grep -e '#define LSMASH_VERSION_MICRO' $SRCDIR/lsmash.h | gsed -e 's/#define LSMASH_VERSION_MICRO //;s/ //g')
 
 if test -n "$TARGET_OS"; then
     TARGET_OS=$(echo $TARGET_OS | tr '[A-Z]' '[a-z]')
@@ -211,26 +211,26 @@ case "$TARGET_OS" in
         SHARED_EXT=".dll"
         DEFNAME="${SHARED_NAME}.def"
         IMPLIB="liblsmash.dll.a"
-        SO_LDFLAGS="-shared -Wl,--output-def,$DEFNAME -Wl,--out-implib,$IMPLIB -Wl,--version-script,liblsmash.ver"
+        SO_LDFLAGS="-shared -Wl,--output-def,$DEFNAME -Wl,--out-implib,$IMPLIB"
         CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
         LIBARCH=i386
         if lib.exe --list > /dev/null 2>&1 ; then
             if is_64bit ; then
                 LIBARCH=x64
             fi
-            SLIB_CMD='sed -i "s/ @[^ ]*//" $(DEFNAME); lib.exe -machine:$(LIBARCH) -def:$(DEFNAME) -out:lsmash.lib'
+            SLIB_CMD='gsed -i "s/ @[^ ]*//" $(DEFNAME); lib.exe -machine:$(LIBARCH) -def:$(DEFNAME) -out:lsmash.lib'
         elif genlib -V > /dev/null 2>&1 ; then
             if is_64bit ; then
                 LIBARCH=x86_64
             else
                 LIBARCH=x86
             fi
-            SLIB_CMD='sed -i "s/ @[^ ]*//" $(DEFNAME); genlib -a $(LIBARCH) -o lsmash.lib -d $(SHAREDLIBNAME) $(DEFNAME)'
+            SLIB_CMD='gsed -i "s/ @[^ ]*//" $(DEFNAME); genlib -a $(LIBARCH) -o lsmash.lib -d $(SHAREDLIBNAME) $(DEFNAME)'
         elif ${CROSS}dlltool --version > /dev/null 2>&1 ; then
             if is_64bit ; then
                 LIBARCH="i386:x86-64"
             fi
-            SLIB_CMD="sed -i \"s/ @[^ ]*//\" \$(DEFNAME); ${CROSS}dlltool -m \$(LIBARCH) -d \$(DEFNAME) -l lsmash.lib -D \$(SHAREDLIBNAME)"
+            SLIB_CMD="gsed -i \"s/ @[^ ]*//\" \$(DEFNAME); ${CROSS}dlltool -m \$(LIBARCH) -d \$(DEFNAME) -l lsmash.lib -D \$(SHAREDLIBNAME)"
         fi
         ;;
     *cygwin*)
@@ -238,11 +238,11 @@ case "$TARGET_OS" in
         SHARED_NAME="cyglsmash"
         SHARED_EXT=".dll"
         IMPLIB="liblsmash.dll.a"
-        SO_LDFLAGS="-shared -Wl,--out-implib,$IMPLIB -Wl,--version-script,liblsmash.ver"
+        SO_LDFLAGS="-shared -Wl,--out-implib,$IMPLIB"
         ;;
     *darwin*)
         SHARED_EXT=".dylib"
-        SO_LDFLAGS="-dynamiclib -Wl,-undefined,suppress -Wl,-read_only_relocs,suppress -Wl,-flat_namespace -Wl,--version-script,liblsmash.ver"
+        SO_LDFLAGS="-dynamiclib -Wl,-undefined,suppress -Wl,-flat_namespace"
         ;;
     *solaris*)
         #patches welcome
@@ -290,9 +290,9 @@ if ! cc_check "$CFLAGS" "$LDFLAGS"; then
     error_exit "invalid CFLAGS/LDFLAGS"
 fi
 
-if cc_check "$CFLAGS -fexcess-precision=fast" "$LDFLAGS"; then
-    CFLAGS="$CFLAGS -fexcess-precision=fast"
-fi
+# if cc_check "$CFLAGS -fexcess-precision=fast" "$LDFLAGS"; then
+#     CFLAGS="$CFLAGS -fexcess-precision=fast"
+# fi
 
 if cc_check "$CFLAGS" "$LDFLAGS -Wl,--large-address-aware"; then
     LDFLAGS="$LDFLAGS -Wl,--large-address-aware"
@@ -418,13 +418,13 @@ cat >> config.h << EOF
 EOF
 
 
-sed "s/\\\$MAJOR/$MAJVER/" $SRCDIR/liblsmash.v > liblsmash.ver
+gsed "s/\\\$MAJOR/$MAJVER/" $SRCDIR/liblsmash.v > liblsmash.ver
 # Add non-public symbols which have lsmash_* prefix to local.
-find $SRCDIR/common/ $SRCDIR/importer/ -name "*.h" | xargs sed -e 's/^[ ]*//g' | \
+find $SRCDIR/common/ $SRCDIR/importer/ -name "*.h" | xargs gsed -e 's/^[ ]*//g' | \
     grep "^\(void\|lsmash_bits_t\|uint64_t\|int\|int64_t\|lsmash_bs_t\|uint8_t\|uint16_t\|uint32_t\|lsmash_entry_list_t\|lsmash_entry_t\|lsmash_multiple_buffers_t\|double\|float\|FILE\) \+\*\{0,1\}lsmash_" | \
-    sed -e "s/.*\(lsmash_.*\)(.*/\1/g" -e "s/.*\(lsmash_.*\)/\1;/g" | xargs -I% sed -i "/^};$/i \           %" liblsmash.ver
+    gsed -e "s/.*\(lsmash_.*\)(.*/\1/g" -e "s/.*\(lsmash_.*\)/\1;/g" | xargs -I% gsed -i "/^};$/i \           %" liblsmash.ver
 # Get rid of non-public symbols for the cli tools from local.
-sed -i -e '/lsmash_win32_fopen/d' \
+gsed -i -e '/lsmash_win32_fopen/d' \
     -e '/lsmash_string_from_wchar/d' \
     -e '/lsmash_importer_open/d' \
     -e '/lsmash_importer_close/d' \
